@@ -1,16 +1,27 @@
 plugins {
     id 'com.android.library'
+    id 'maven-publish'
 }
 
 android {
     namespace 'cloud.inferno_team.custom_pusher'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdk 23
-
+        aarMetadata {
+            minCompileSdk = 29
+        }
+        testFixtures {
+            enable = true
+        }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+    }
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 
     buildTypes {
@@ -20,8 +31,19 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+publishing {
+    publications {
+        bar(MavenPublication) {
+            groupId "cloud.inferno.team"
+            artifactId "custom_pusher"
+            version "0.9-alpha"
+            artifact("$buildDir/outputs/aar/custom_pusher-release.aar")
+        }
     }
 }
 
@@ -37,3 +59,4 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
+
