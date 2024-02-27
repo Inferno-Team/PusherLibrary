@@ -4,13 +4,20 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -67,13 +74,12 @@ public class PusherService extends LifecycleService {
 
     private void createListener(PusherPostData<?> livedata) {
         if (livedata.getType() == PusherEventType.CHANNEL_SUBSCRIBED) {
-            Object o = livedata.getData();
-            if (o instanceof String)
-                Toast.makeText(this, o.toString(), Toast.LENGTH_SHORT).show();
+//            Object o = livedata.getData();
+//            if (o instanceof String)
+//                Toast.makeText(this, o.toString(), Toast.LENGTH_SHORT).show();
         } else if (livedata.getType() == PusherEventType.NEW_EVENT) {
-            if (livedata.getData() instanceof PusherEvent) {
-                PusherEvent event = (PusherEvent) livedata.getData();
-                JSONObject obj = null;
+            if (livedata.getData() instanceof PusherEvent event) {
+                JSONObject obj;
                 try {
                     obj = new JSONObject(event.getData());
                     System.out.println(event.getData());
@@ -105,7 +111,7 @@ public class PusherService extends LifecycleService {
     }
 
 
-    private Notification createNotification() {
+    protected Notification createNotification() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is not in the Support Library.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -135,7 +141,7 @@ public class PusherService extends LifecycleService {
         return builder.build();
     }
 
-    private Notification createEventNotification(NotificationObject object) {
+    protected Notification createEventNotification(NotificationObject object) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is not in the Support Library.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -170,13 +176,24 @@ public class PusherService extends LifecycleService {
                         .asBitmap()
                         .load(object.getImageUrl())
                         .submit().get();
-                 IconCompat iconCompat = IconCompat.createWithBitmap(bitmap);
+                IconCompat iconCompat = IconCompat.createWithBitmap(bitmap);
                 builder.setSmallIcon(iconCompat);
-             } catch (ExecutionException | InterruptedException e) {
+            } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
-         }else{
-            builder.setSmallIcon(R.drawable.ic_launcher_background);
+        } else {
+            Context context = getApplicationContext();
+            PackageManager packageManager = context.getPackageManager();
+            ApplicationInfo applicationInfo;
+            try {
+                applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
+                Drawable appIcon = packageManager.getApplicationIcon(applicationInfo);
+                Bitmap iconBitmap = ((BitmapDrawable) appIcon).getBitmap();
+                IconCompat iconCompat = IconCompat.createWithBitmap(iconBitmap);
+                builder.setSmallIcon(iconCompat);
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.e(this.getClass().getName(), e.toString());
+            }
         }
         return builder.build();
     }
