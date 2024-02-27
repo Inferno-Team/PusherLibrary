@@ -9,9 +9,6 @@ android {
 
     defaultConfig {
         minSdk 23
-        aarMetadata {
-            minCompileSdk = 29
-        }
         testFixtures {
             enable = true
         }
@@ -36,15 +33,17 @@ android {
     }
 }
 
-publishing {
-    publications {
-        bar(MavenPublication) {
-            groupId "cloud.inferno.team"
-            artifactId "custom_pusher"
-            version "0.9-alpha"
-            artifact("$buildDir/outputs/aar/custom_pusher-release.aar")
-        }
-    }
+afterEvaluate {
+   publishing {
+       publications {
+           release(MavenPublication){
+               from components.release
+               groupId "cloud.inferno.team"
+               artifactId "custom_pusher"
+               version "0.9.1-beta"
+           }
+       }
+   }
 }
 
 dependencies {
