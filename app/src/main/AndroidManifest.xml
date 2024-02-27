@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PusherLibrary"
+        tools:targetApi="31">
+        <meta-data
+            android:name="com.custom_pusher.PROJECT_ID_VALUE"
+            android:value="ea7875ca-b9f8-40de-a509-1b6564792646" />
+        <meta-data
+            android:name="com.custom_pusher.KEY_VALUE"
+            android:value="myKey" />
+
+        <meta-data
+            android:name="com.custom_pusher.CLUSTER_VALUE"
+            android:value="mt1" />
+        <meta-data
+            android:name="com.custom_pusher.HOST_VALUE"
+            android:value="192.168.1.8" />
+        <meta-data
+            android:name="com.custom_pusher.PORT_VALUE"
+            android:value="6001" />
+        <meta-data
+            android:name="com.custom_pusher.USE_TLS_VALUE"
+            android:value="false" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name="cloud.inferno_team.custom_pusher.services.PusherService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+           >
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="explanation_for_special_use"/>
+        </service>
+        <receiver
+            android:name="cloud.inferno_team.custom_pusher.services.Restarter"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="restartservice" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
