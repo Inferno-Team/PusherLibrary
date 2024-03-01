@@ -10,6 +10,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -39,7 +41,7 @@ public class PusherService extends LifecycleService {
     private final static int NOTIFICATION_ID = 101;
     private final static String CHANNEL_ID = "101";
 
-    private static Intent onClickIntent;
+    public static Intent onClickIntent;
 
 
     @Nullable
@@ -180,19 +182,32 @@ public class PusherService extends LifecycleService {
             ApplicationInfo applicationInfo;
             try {
                 applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
+                // Extract the application icon
                 Drawable appIcon = packageManager.getApplicationIcon(applicationInfo);
-                Bitmap iconBitmap = ((BitmapDrawable) appIcon).getBitmap();
+
+                // Convert the Drawable to a Bitmap
+                Bitmap iconBitmap;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        && appIcon instanceof AdaptiveIconDrawable) {
+                    // If the app icon is an adaptive icon, draw it onto a Bitmap
+                    iconBitmap = Bitmap.createBitmap(appIcon.getIntrinsicWidth(),
+                            appIcon.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                    Canvas canvas = new Canvas(iconBitmap);
+                    appIcon.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                    appIcon.draw(canvas);
+                    iconBitmap = Bitmap.createScaledBitmap(iconBitmap, 48, 48, false);
+                } else {
+                    // For non-adaptive icons, convert Drawable to Bitmap directly
+                    iconBitmap = ((BitmapDrawable) appIcon).getBitmap();
+                }
                 IconCompat iconCompat = IconCompat.createWithBitmap(iconBitmap);
+
                 builder.setSmallIcon(iconCompat);
             } catch (PackageManager.NameNotFoundException e) {
                 Log.e(this.getClass().getName(), e.toString());
             }
         }
         return builder.build();
-    }
-
-    public static void setOnClickIntent(Intent onClickIntent) {
-        PusherService.onClickIntent = onClickIntent;
     }
 
 //    @Override

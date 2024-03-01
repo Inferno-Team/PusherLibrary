@@ -40,7 +40,7 @@ afterEvaluate {
                from components.release
                groupId "cloud.inferno.team"
                artifactId "custom_pusher"
-               version "0.9.1-beta-1"
+               version "0.9.2"
            }
        }
    }
