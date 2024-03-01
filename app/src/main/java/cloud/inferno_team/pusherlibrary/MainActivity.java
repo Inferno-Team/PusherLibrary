@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Intent intent = new Intent(this, PusherService.class);
+        Intent i = new Intent(this, MainActivity.class);
+        PusherService.setOnClickIntent(i);
 //        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //        startService(intent);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

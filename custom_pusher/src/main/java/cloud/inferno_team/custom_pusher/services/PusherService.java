@@ -10,15 +10,11 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,15 +24,12 @@ import androidx.lifecycle.LifecycleService;
 
 import com.bumptech.glide.Glide;
 import com.pusher.client.channel.PusherEvent;
-import com.pusher.client.connection.ConnectionEventListener;
-import com.pusher.client.connection.ConnectionStateChange;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
-import cloud.inferno_team.custom_pusher.R;
 import cloud.inferno_team.custom_pusher.types.NotificationObject;
 import cloud.inferno_team.custom_pusher.types.PusherEventType;
 import cloud.inferno_team.custom_pusher.types.PusherPostData;
@@ -45,6 +38,9 @@ public class PusherService extends LifecycleService {
     private BackgroundServiceThread thread;
     private final static int NOTIFICATION_ID = 101;
     private final static String CHANNEL_ID = "101";
+
+    private static Intent onClickIntent;
+
 
     @Nullable
     @Override
@@ -73,11 +69,7 @@ public class PusherService extends LifecycleService {
 
 
     private void createListener(PusherPostData<?> livedata) {
-        if (livedata.getType() == PusherEventType.CHANNEL_SUBSCRIBED) {
-//            Object o = livedata.getData();
-//            if (o instanceof String)
-//                Toast.makeText(this, o.toString(), Toast.LENGTH_SHORT).show();
-        } else if (livedata.getType() == PusherEventType.NEW_EVENT) {
+        if (livedata.getType() == PusherEventType.NEW_EVENT) {
             if (livedata.getData() instanceof PusherEvent event) {
                 JSONObject obj;
                 try {
@@ -96,7 +88,7 @@ public class PusherService extends LifecycleService {
                         }
                     }.start();
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    Log.e(getApplicationContext().getClass().getName(), "NEW_EVENT", e);
                 }
             }
         }
@@ -155,20 +147,21 @@ public class PusherService extends LifecycleService {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
-        // Create an explicit intent for an Activity in your app.
-        Intent intent = new Intent(this, getApplicationContext().getClass());
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                intent, PendingIntent.FLAG_IMMUTABLE);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-//                .setSmallIcon(R.drawable.ic_launcher_background)
-
                 .setContentTitle(object.getTitle())
                 .setContentText(object.getDescription())
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 // Set the intent that fires when the user taps the notification.
-                .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
+        //check if onClickIntent is not null
+        if (onClickIntent != null) {
+            // Create an explicit intent for an Activity in your app.
+            onClickIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                    onClickIntent, PendingIntent.FLAG_IMMUTABLE);
+            builder.setContentIntent(pendingIntent);
+        }
+
         if (object.getImageUrl() != null &&
                 !object.getImageUrl().isEmpty()) {
             try {
@@ -196,6 +189,10 @@ public class PusherService extends LifecycleService {
             }
         }
         return builder.build();
+    }
+
+    public static void setOnClickIntent(Intent onClickIntent) {
+        PusherService.onClickIntent = onClickIntent;
     }
 
 //    @Override
